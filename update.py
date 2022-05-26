@@ -48,7 +48,7 @@ Python module containing {contents} files for {name} {type} (for use with LiteX)
 
 
 def github_repo_create(g, module_data):
-    org = g.get_organization('litex-hub')
+    org = g.get_organization(module_data['org'])
     org.create_repo(module_data['repo'], **github_repo_config(module_data))
 
 
@@ -57,7 +57,7 @@ def github_repo(g, module_data):
     while attempts < MAX_ATTEMPTS:
         attempts += 1
         try:
-            slug = 'litex-hub/'+module_data['repo']
+            slug = module_data['org'] + '/' + module_data['repo']
             repo = g.get_repo(slug)
             if g.token:
                 print("Updating repo ", slug)
@@ -495,8 +495,8 @@ def push(module_data):
     user = os.environ.get('GH_USER', None)
     token = os.environ.get('GH_TOKEN', None)
     if user and token:
-        cmd.append('https://{u}:{p}@github.com/litex-hub/{m}.git'.format(
-            u=user, p=token, m=module_data['repo']))
+        cmd.append('https://{u}:{p}@github.com/{o}/{m}.git'.format(
+            u=user, p=token, o=module_data['org'], m=module_data['repo']))
     subprocess_check_call(cmd, cwd=repo_dir)
     print('-'*75)
 
@@ -614,10 +614,12 @@ def main(name, argv):
         m['tool_version_tuple'] = repr(tool_version_tuple)
         m['name'] = module
         m['repo'] = repo_name
-        m['repo_url'] = "{mode}://github.com/litex-hub/{repo}.git".format(
+        m['repo_url'] = "{mode}://github.com/{org}/{repo}.git".format(
             mode=GIT_MODE,
+            org=m['org'],
             repo=repo_name)
-        m['repo_https'] = "https://github.com/litex-hub/{repo}.git".format(
+        m['repo_https'] = "https://github.com/{org}/{repo}.git".format(
+            org=m['org'],
             repo=repo_name)
         m['py'] = 'pythondata_{type}_{name}'.format(type=m['type'], name=module)
         m['dir'] = os.path.join(m['py'], m['contents'])
